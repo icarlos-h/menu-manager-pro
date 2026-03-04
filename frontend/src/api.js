@@ -15,19 +15,43 @@ function getAuthHeaders() {
 async function checkResponse(r) {
   if (!r.ok) {
     const text = await r.text();
-    throw new Error(`${r.status} ${r.statusText} ${text}`);
+    
+    let message = `${r.status} ${r.statusText}`;
+    if (text) {
+      try {
+        const parsed = JSON.parse(text);
+        const backendMessage = parsed?.message || parsed?.error || parsed?.detail;
+        message = backendMessage ? `${message} ${backendMessage}` : `${message} ${text}`;
+      } catch {
+        message = `${message} ${text}`;
+      }
+    }
+
+    throw new Error(message);
   }
   return r.status === 204 ? null : r.json();
 }
 export function getFriendlyDeleteError(entityName, rawError) {
   const msg = String(rawError || "").toLowerCase();
 
-  const isConstraintError =
+  const isConstraintError =    msg.includes("409 conflict") ||
+      msg.includes("403") ||
     msg.includes("constraint") ||
     msg.includes("referential integrity") ||
     msg.includes("foreign key") ||
     msg.includes("data integrity") ||
-    msg.includes("violat");
+     msg.includes("violat") ||
+    msg.includes("integrity constraint") ||
+    msg.includes("could not execute statement") ||
+    msg.includes("sqlstate[23503]") ||
+    msg.includes("23503") ||
+    msg.includes("violação de restrição") ||
+    msg.includes("violacao de restricao") ||
+    msg.includes("restrição referencial") ||
+    msg.includes("restricao referencial") ||
+    msg.includes("chave estrangeira") ||
+    msg.includes("não é possível excluir") ||
+    msg.includes("nao e possivel excluir");
 
   if (!isConstraintError) {
     return rawError;

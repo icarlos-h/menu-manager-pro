@@ -7,8 +7,11 @@ import com.menumgr.menumanagerprobackend.repository.UnitCategoryRepository;
 import com.menumgr.menumanagerprobackend.repository.UnitRepository;
 import com.menumgr.menumanagerprobackend.web.dto.CategoryCreateRequest;
 import com.menumgr.menumanagerprobackend.web.dto.CategoryResponse;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -56,7 +59,17 @@ this.unitCategoryRepository = unitCategoryRepository;
         if (!repository.existsById(id)) {
             throw new IllegalArgumentException("Category not found: " + id);
         }
-        repository.deleteById(id);
+        
+        try {
+            repository.deleteById(id);
+            repository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível excluir uma categoria que está em uso. Remova os produtos vinculados a essa categoria antes de excluir."
+            );
+        }
+        
     }
 
     private CategoryResponse toResponse(Category c) {

@@ -10,8 +10,12 @@ import com.menumgr.menumanagerprobackend.domain.Unit;
 import com.menumgr.menumanagerprobackend.domain.UnitProduct;
 import com.menumgr.menumanagerprobackend.repository.UnitRepository;
 import com.menumgr.menumanagerprobackend.repository.UnitProductRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -64,7 +68,16 @@ public class ProductService {
 		if (!productRepository.existsById(id)) {
 			throw new IllegalArgumentException("Product not found: " + id);
 		}
-		productRepository.deleteById(id);
+
+		try {
+			productRepository.deleteById(id);
+			productRepository.flush();
+		} catch (DataIntegrityViolationException ex) {
+			throw new ResponseStatusException(
+					HttpStatus.CONFLICT,
+					"Não é possível excluir um produto que está em uso. Remova os vínculos desse produto nas unidades antes de excluir."
+			);
+		}
 	}
 
 	private ProductResponse toResponse(Product p) {
