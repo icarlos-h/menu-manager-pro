@@ -53,6 +53,15 @@ public class AdminUserService {
         );
     }
 
+    
+    @Transactional
+    public void deleteUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException("User not found: " + userId);
+        }
+        userRepository.deleteById(userId);
+    }
+
     private String generateTempPassword(int length) {
         final String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
         SecureRandom r = new SecureRandom();

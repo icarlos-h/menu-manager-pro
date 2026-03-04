@@ -4,6 +4,7 @@ import com.menumgr.menumanagerprobackend.domain.Unit;
 import com.menumgr.menumanagerprobackend.repository.UnitRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import com.menumgr.menumanagerprobackend.service.AdminUnitService;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,12 @@ import java.util.List;
 public class AdminUnitController {
 
     private final UnitRepository unitRepository;
+    private final AdminUnitService adminUnitService;
 
-    public AdminUnitController(UnitRepository unitRepository) {
+    public AdminUnitController(UnitRepository unitRepository, AdminUnitService adminUnitService) {
         this.unitRepository = unitRepository;
+        this.adminUnitService = adminUnitService;
+    
     }
 
     // ✅ LIST
@@ -45,7 +49,12 @@ public class AdminUnitController {
         Unit saved = unitRepository.save(u);
         return UnitResponse.from(saved);
     }
-
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void delete(@PathVariable Long id) {
+        adminUnitService.deleteUnit(id);
+    }
     private String normalizeOptional(String s) {
         if (s == null) return null;
         String t = s.trim();

@@ -11,4 +11,6 @@ public interface UnitCategoryRepository extends JpaRepository<UnitCategory, Long
     List<UnitCategory> findByUnitIdAndActiveTrue(Long unitId);
 
     Optional<UnitCategory> findByUnitIdAndCategoryId(Long unitId, Long categoryId);
+
+    void deleteByUnitId(Long unitId);
 }

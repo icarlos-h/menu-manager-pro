@@ -33,7 +33,13 @@ public class AdminUsersController {
         this.unitRepository = unitRepository;
     }
 
-    // ✅ mantém seu endpoint atual
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public AdminCreateUnitUserResponse createUnitUserAtRoot(@Valid @RequestBody AdminCreateUnitUserRequest request) {
+        return adminUserService.createUnitUser(request);
+    }
+
+    // ✅ mantém endpoint legado
     @PostMapping("/unit")
     @ResponseStatus(HttpStatus.CREATED)
     public AdminCreateUnitUserResponse createUnitUser(@Valid @RequestBody AdminCreateUnitUserRequest request) {
@@ -77,6 +83,11 @@ public class AdminUsersController {
                 .sorted(Comparator.comparing(Unit::getId))
                 .map(u -> new UnitOptionResponse(u.getId(), u.getName()))
                 .toList();
+    }
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long userId) {
+        adminUserService.deleteUser(userId);
     }
 
     public record UserRowResponse(

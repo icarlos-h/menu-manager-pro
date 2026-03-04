@@ -1,6 +1,11 @@
 // frontend/src/api.js
 const API_BASE = "http://localhost:8080"; // se backend estiver em /, deixe vazio; ou "http://localhost:8080"
-
+export function resolveBackendUrl(url) {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return `${API_BASE}${url}`;
+  return `${API_BASE}/${url}`;
+}
 function getAuthHeaders() {
   const token = localStorage.getItem("auth_token");
   console.log("TOKEN:", token);
@@ -14,7 +19,38 @@ async function checkResponse(r) {
   }
   return r.status === 204 ? null : r.json();
 }
+export function getFriendlyDeleteError(entityName, rawError) {
+  const msg = String(rawError || "").toLowerCase();
 
+  const isConstraintError =
+    msg.includes("constraint") ||
+    msg.includes("referential integrity") ||
+    msg.includes("foreign key") ||
+    msg.includes("data integrity") ||
+    msg.includes("violat");
+
+  if (!isConstraintError) {
+    return rawError;
+  }
+
+  if (entityName === "categoria") {
+    return "Não é possível excluir uma categoria que está em uso. Remova os produtos vinculados a essa categoria antes de excluir.";
+  }
+
+  if (entityName === "produto") {
+    return "Não é possível excluir um produto que está em uso. Desvincule/ajuste as referências desse produto antes de excluir.";
+  }
+
+  if (entityName === "unidade") {
+    return "Não foi possível excluir a unidade porque ainda há vínculos ativos. Remova os vínculos pendentes e tente novamente.";
+  }
+
+  if (entityName === "usuário") {
+    return "Não foi possível excluir o usuário porque ele está em uso por outros registros.";
+  }
+
+  return rawError;
+}
 /* Public */
 export async function getPublicUnits() {
   const r = await fetch(`${API_BASE}/public/units`);
@@ -76,6 +112,14 @@ export async function adminCreateCategory(payload) {
   return checkResponse(r);
 }
 
+export async function adminDeleteCategory(categoryId) {
+  const r = await fetch(`${API_BASE}/api/admin/categories/${categoryId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders()
+  });
+  return checkResponse(r);
+}
+
 export async function adminListProducts() {
   const r = await fetch(`${API_BASE}/api/admin/products`, { headers: getAuthHeaders() });
   return checkResponse(r);
@@ -100,12 +144,35 @@ export async function adminCreateProduct(payload) {
   console.log("✅ POST OK");
 }
 
+export async function adminDeleteProduct(productId) {
+  const r = await fetch(`${API_BASE}/api/admin/products/${productId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders()
+  });
+  return checkResponse(r);
+}
+
 /* Users (create unit user) */
 export async function adminCreateUnitUser(payload) {
-  const r = await fetch(`${API_BASE}/api/admin/unit`, {
+  const r = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",
     headers: Object.assign({ "Content-Type": "application/json" }, getAuthHeaders()),
     body: JSON.stringify(payload)
+  });
+  return checkResponse(r);
+}
+export async function adminDeleteUser(userId) {
+  const r = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders()
+  });
+  return checkResponse(r);
+}
+
+export async function adminDeleteUnit(unitId) {
+  const r = await fetch(`${API_BASE}/api/admin/units/${unitId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders()
   });
   return checkResponse(r);
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getPublicMenu } from "./api";
+import { getPublicMenu, resolveBackendUrl } from "./api";
 
 const route = useRoute();
 const router = useRouter();
@@ -48,7 +48,9 @@ function scrollToCategory(categoryId) {
   const el = document.getElementById(`cat-${categoryId}`);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
+function getPhotoUrl(photoUrl) {
+  return resolveBackendUrl(photoUrl);
+}
 onMounted(load);
 </script>
 
@@ -106,7 +108,7 @@ onMounted(load);
           <div v-else class="grid">
             <article v-for="p in c.products" :key="p.productId" class="menu-card">
               <div class="imgwrap">
-                <img v-if="p.photoUrl" :src="p.photoUrl" :alt="p.name" />
+                <img v-if="p.photoUrl" :src="getPhotoUrl(p.photoUrl)" :alt="p.name" />
                 <div v-else style="height:100%;display:flex;align-items:center;justify-content:center;font-size:42px;">
                   🍔
                 </div>

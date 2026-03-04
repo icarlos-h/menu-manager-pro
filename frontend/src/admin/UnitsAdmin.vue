@@ -1,7 +1,7 @@
 <!-- frontend/src/admin/UnitsAdmin.vue -->
 <script setup>
 import { ref, onMounted } from "vue";
-import { adminListUnits, adminCreateUnit } from "../api";
+import { adminListUnits, adminCreateUnit, adminDeleteUnit, getFriendlyDeleteError } from "../api";
 
 const units = ref([]);
 const error = ref("");
@@ -78,7 +78,22 @@ async function submit() {
     error.value = e?.message || String(e);
   }
 }
+async function removeUnit(unit) {
+  if (!confirm(`Remover a unidade "${unit.name}" (ID ${unit.id})?`)) return;
 
+  error.value = "";
+  success.value = "";
+
+  try {
+    await adminDeleteUnit(unit.id);
+    success.value = "Unidade removida ✅";
+    await load();
+  } catch (e) {
+    const raw = e?.message || String(e);
+    error.value = getFriendlyDeleteError("unidade", raw);
+
+  }
+}
 onMounted(load);
 </script>
 
@@ -121,6 +136,7 @@ onMounted(load);
           <button class="btn" disabled title="Editar a gente implementa no backend já já">
             Editar
           </button>
+                    <button class="btn" @click="removeUnit(u)">Excluir</button>
         </div>
       </div>
     </div>

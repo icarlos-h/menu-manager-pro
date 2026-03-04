@@ -6,6 +6,9 @@ import {
   adminCreateProduct,
   adminListCategories,
   adminUploadProductImage,
+  adminDeleteProduct,
+    resolveBackendUrl,
+    getFriendlyDeleteError
 } from "../api";
 
 const categories = ref([]);
@@ -23,6 +26,7 @@ const form = ref({
 });
 
 const imageFile = ref(null); // arquivo selecionado
+const imageInputRef = ref(null);
 
 async function load() {
   error.value = "";
@@ -34,6 +38,13 @@ async function load() {
 function onFileChange(e) {
   const file = e.target.files?.[0] || null;
   imageFile.value = file;
+}
+
+function clearSelectedImage() {
+  imageFile.value = null;
+  if (imageInputRef.value) {
+    imageInputRef.value.value = "";
+  }
 }
 
 async function submit() {
@@ -56,11 +67,11 @@ async function submit() {
       weightGrams: form.value.weightGrams ? Number(form.value.weightGrams) : null,
     };
 
-    const created = await adminCreateProduct(payload); // precisa retornar productId
+      const created = await adminCreateProduct(payload); // backend retorna "id"
 
     // 2) se tem arquivo, faz upload
     if (imageFile.value) {
-      await adminUploadProductImage(created.productId, imageFile.value);
+      await adminUploadProductImage(created.id, imageFile.value);
     }
 
     // limpa form
@@ -72,7 +83,7 @@ async function submit() {
       photoUrl: "",
       weightGrams: "",
     });
-    imageFile.value = null;
+    clearSelectedImage();
 
     await load();
     success.value = "Produto criado com sucesso ✅";
@@ -81,7 +92,27 @@ async function submit() {
   }
 }
 
+
+async function removeProduct(product) {
+  if (!confirm(`Remover produto "${product.name}" (ID ${product.id})?`)) return;
+
+  error.value = "";
+  success.value = "";
+
+  try {
+    await adminDeleteProduct(product.id);
+    success.value = "Produto removido ✅";
+    await load();
+  } catch (e) {
+    const raw = e?.message || String(e);
+    error.value = getFriendlyDeleteError("produto", raw);
+
+  }
+}
 onMounted(load);
+function openPhotoUrl(photoUrl) {
+  return resolveBackendUrl(photoUrl);
+}
 </script>
 
 <template>
@@ -98,7 +129,7 @@ onMounted(load);
     <form class="card" @submit.prevent="submit">
       <select v-model.number="form.categoryId" required>
         <option :value="null" disabled>Escolha categoria</option>
-        <option v-for="c in categories" :value="c.categoryId" :key="c.categoryId">
+        <option v-for="c in categories" :value="c.id" :key="c.id">
           {{ c.name }}
         </option>
       </select>
@@ -109,10 +140,22 @@ onMounted(load);
       <input v-model="form.weightGrams" type="number" step="1" placeholder="Gramatura (g)" />
 
       <div class="subtle" style="margin-top:8px;">
-        Foto:
       </div>
-      <input type="file" accept="image/*" @change="onFileChange" />
-
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input ref="imageInputRef" type="file" accept="image/*" @change="onFileChange" />
+        <button
+          v-if="imageFile"
+          type="button"
+          class="btn"
+          @click="clearSelectedImage"
+          title="Remover imagem selecionada"
+        >
+          ✕ Remover
+        </button>
+      </div>
+      <div v-if="imageFile" class="subtle" style="margin-top:6px;">
+        Arquivo selecionado: {{ imageFile.name }}
+      </div>
       <button class="btn primary" type="submit">Criar Produto</button>
     </form>
 
@@ -120,18 +163,22 @@ onMounted(load);
       <table style="width:100%">
         <thead>
           <tr>
-            <th>ID</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Foto</th>
+            <th>ID</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Foto</th><th>Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="p in products" :key="p.productId">
-            <td>{{ p.productId }}</td>
+          <tr v-for="p in products" :key="p.id">
+            <td>{{ p.id }}</td>
             <td>{{ p.name }}</td>
-            <td>{{ p.categoryName }}</td>
-            <td>{{ p.price }}</td>
+            <td>{{ p.categoryName }}</td> 
+            <td>{{ p.basePrice }}</td>
             <td>
-              <a v-if="p.photoUrl" :href="p.photoUrl" target="_blank">abrir</a>
+              <a v-if="p.photoUrl" :href="openPhotoUrl(p.photoUrl)" target="_blank">abrir</a>
+
               <span v-else class="subtle">—</span>
+            </td>
+                        <td>
+              <button class="btn" @click="removeProduct(p)">Excluir</button>
             </td>
           </tr>
         </tbody>
