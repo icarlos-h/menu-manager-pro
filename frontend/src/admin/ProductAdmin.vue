@@ -1,38 +1,77 @@
 <!-- frontend/src/admin/ProductsAdmin.vue -->
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import {
   adminListProducts,
   adminCreateProduct,
   adminListCategories,
   adminUploadProductImage,
   adminDeleteProduct,
-    resolveBackendUrl,
-    getFriendlyDeleteError
+  resolveBackendUrl,
+  getFriendlyDeleteError
 } from "../api";
+import defaultProductImage from "../assets/default.png"; // imagem padrão para produtos sem foto
 
 const categories = ref([]);
 const products = ref([]);
 const error = ref("");
 const success = ref("");
+const creating = ref(false);
 
 const form = ref({
   categoryId: null,
   name: "",
   description: "",
   basePrice: "",
-  photoUrl: "",      // opcional: URL manual
+  photoUrl: "",
   weightGrams: "",
 });
 
-const imageFile = ref(null); // arquivo selecionado
+const imageFile = ref(null);
 const imageInputRef = ref(null);
+
+const groupedProducts = computed(() => {
+  const groups = new Map();
+
+  categories.value.forEach((category) => {
+    groups.set(category.id, {
+      id: category.id,
+      name: category.name,
+      products: [],
+    });
+  });
+
+  products.value.forEach((product) => {
+    const categoryId = product.categoryId;
+    if (!groups.has(categoryId)) {
+      groups.set(categoryId, {
+        id: categoryId,
+        name: product.categoryName || "Sem categoria",
+        products: [],
+      });
+    }
+    groups.get(categoryId).products.push(product);
+  });
+
+  return Array.from(groups.values())
+    .filter((group) => group.products.length > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+});
 
 async function load() {
   error.value = "";
   success.value = "";
   categories.value = await adminListCategories();
   products.value = await adminListProducts();
+}
+
+function openCreate() {
+  creating.value = true;
+}
+
+function closeCreate() {
+  creating.value = false;
+  clearSelectedImage();
 }
 
 function onFileChange(e) {
@@ -46,7 +85,15 @@ function clearSelectedImage() {
     imageInputRef.value.value = "";
   }
 }
+function productPhotoUrl(product) {
+  if (!product?.photoUrl) return defaultProductImage;
+  return resolveBackendUrl(product.photoUrl);
+}
 
+function formatPrice(value) {
+  const number = Number(value || 0);
+  return number.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 async function submit() {
   error.value = "";
   success.value = "";
@@ -54,10 +101,10 @@ async function submit() {
   try {
     if (form.value.categoryId === null) throw new Error("Selecione uma categoria.");
     if (!form.value.name?.trim()) throw new Error("Informe o nome.");
-    if (form.value.basePrice === "" || !Number.isFinite(Number(form.value.basePrice)))
+    if (form.value.basePrice === "" || !Number.isFinite(Number(form.value.basePrice))) {
       throw new Error("Informe um preço válido.");
+    }
 
-    // 1) cria produto (sem upload ainda)
     const payload = {
       categoryId: Number(form.value.categoryId),
       name: form.value.name.trim(),
@@ -67,14 +114,12 @@ async function submit() {
       weightGrams: form.value.weightGrams ? Number(form.value.weightGrams) : null,
     };
 
-      const created = await adminCreateProduct(payload); // backend retorna "id"
+    const created = await adminCreateProduct(payload);
 
-    // 2) se tem arquivo, faz upload
     if (imageFile.value) {
       await adminUploadProductImage(created.id, imageFile.value);
     }
 
-    // limpa form
     Object.assign(form.value, {
       categoryId: null,
       name: "",
@@ -83,7 +128,7 @@ async function submit() {
       photoUrl: "",
       weightGrams: "",
     });
-    clearSelectedImage();
+    closeCreate();
 
     await load();
     success.value = "Produto criado com sucesso ✅";
@@ -117,72 +162,177 @@ function openPhotoUrl(photoUrl) {
 
 <template>
   <div>
-    <h2>Produtos</h2>
-
-    <div v-if="error" class="card" style="border:1px solid #ffb4b4;">
-      {{ error }}
-    </div>
-    <div v-if="success" class="card" style="border:1px solid #a6f3b0;">
-      {{ success }}
+    <div class="page-head">
+      <h2>Produtos</h2>
+      <div class="head-actions">
+        <button class="btn primary" @click="openCreate">+ Criar produto</button>
+      </div>
     </div>
 
-    <form class="card" @submit.prevent="submit">
-      <select v-model.number="form.categoryId" required>
-        <option :value="null" disabled>Escolha categoria</option>
-        <option v-for="c in categories" :value="c.id" :key="c.id">
-          {{ c.name }}
-        </option>
-      </select>
+    <div v-if="error" class="alert danger mt-16">{{ error }}</div>
+    <div v-if="success" class="alert success mt-16">{{ success }}</div>
 
-      <input v-model="form.name" placeholder="Nome" required />
-      <input v-model="form.description" placeholder="Descrição (opcional)" />
-      <input v-model="form.basePrice" type="number" step="0.01" placeholder="Preço" required />
-      <input v-model="form.weightGrams" type="number" step="1" placeholder="Gramatura (g)" />
+    <div class="product-categories mt-16">
+      <div v-for="category in groupedProducts" :key="category.id" class="category-card">
+        <div class="category-head">
+          <h3>{{ category.name }}</h3>
+          <span class="subtle">{{ category.products.length }} produto(s)</span>
+        </div>
 
-      <div class="subtle" style="margin-top:8px;">
+        <div class="products-grid">
+          <article v-for="p in category.products" :key="p.id" class="product-card">
+            <img :src="productPhotoUrl(p)" :alt="p.name" class="product-photo" />
+            <div class="product-content">
+              <div class="product-title-row">
+                <strong>{{ p.name }}</strong>
+                <span class="price">{{ formatPrice(p.basePrice) }}</span>
+              </div>
+
+              <p v-if="p.description" class="subtle product-desc">{{ p.description }}</p>
+              <p v-else class="subtle product-desc">Sem descrição.</p>
+
+              <div class="product-meta">
+                <span>ID {{ p.id }}</span>
+                <span v-if="p.weightGrams">{{ p.weightGrams }}g</span>
+              </div>
+
+              <div class="product-actions">
+                <button class="btn" @click="removeProduct(p)">Excluir</button>
+              </div>
+            </div>
+          </article>
+
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input ref="imageInputRef" type="file" accept="image/*" @change="onFileChange" />
-        <button
-          v-if="imageFile"
-          type="button"
-          class="btn"
-          @click="clearSelectedImage"
-          title="Remover imagem selecionada"
-        >
-          ✕ Remover
-        </button>
-      </div>
-      <div v-if="imageFile" class="subtle" style="margin-top:6px;">
-        Arquivo selecionado: {{ imageFile.name }}
-      </div>
-      <button class="btn primary" type="submit">Criar Produto</button>
-    </form>
 
-    <div class="card" style="margin-top:12px;">
-      <table style="width:100%">
-        <thead>
-          <tr>
-            <th>ID</th><th>Nome</th><th>Categoria</th><th>Preço</th><th>Foto</th><th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in products" :key="p.id">
-            <td>{{ p.id }}</td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.categoryName }}</td> 
-            <td>{{ p.basePrice }}</td>
-            <td>
-              <a v-if="p.photoUrl" :href="openPhotoUrl(p.photoUrl)" target="_blank">abrir</a>
+    </div>
+    <div v-if="creating" class="modal-backdrop" @click.self="closeCreate">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Criar produto</div>
+            <div class="subtle">Preencha os dados e salve.</div>
+          </div>
+          <button class="btn ghost" @click="closeCreate">✕</button>
+        </div>
 
-              <span v-else class="subtle">—</span>
-            </td>
-                        <td>
-              <button class="btn" @click="removeProduct(p)">Excluir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <form class="modal-body" @submit.prevent="submit">
+          <select v-model.number="form.categoryId" required>
+            <option :value="null" disabled>Escolha categoria</option>
+            <option v-for="c in categories" :value="c.id" :key="c.id">{{ c.name }}</option>
+          </select>
+
+          <input v-model="form.name" placeholder="Nome" required />
+          <input v-model="form.description" placeholder="Descrição (opcional)" />
+          <input v-model="form.basePrice" type="number" step="0.01" placeholder="Preço" required />
+          <input v-model="form.photoUrl" placeholder="URL da foto (opcional)" />
+          <input v-model="form.weightGrams" type="number" step="1" placeholder="Gramatura (g)" />
+
+          <div style="display:flex;align-items:center;gap:8px; margin-top: 8px;">
+            <input ref="imageInputRef" type="file" accept="image/*" @change="onFileChange" />
+            <button v-if="imageFile" type="button" class="btn" @click="clearSelectedImage">✕ Remover</button>
+          </div>
+          <div v-if="imageFile" class="subtle" style="margin-top:6px;">Arquivo selecionado: {{ imageFile.name }}</div>
+        </form>
+
+        <div class="modal-foot">
+          <button class="btn" @click="closeCreate">Cancelar</button>
+          <button class="btn primary" @click="submit">Criar produto</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.product-categories {
+  display: grid;
+  gap: 16px;
+}
+
+.category-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  padding: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.category-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(16, 24, 40, .12);
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.product-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(255, 255, 255, .9);
+  display: flex;
+  flex-direction: column;
+}
+
+.product-photo {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background: #f2f4f7;
+}
+
+.product-content {
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.product-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.price {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.product-desc {
+  margin: 0;
+  min-height: 38px;
+}
+
+.product-meta {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width:980px) {
+  .products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:640px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

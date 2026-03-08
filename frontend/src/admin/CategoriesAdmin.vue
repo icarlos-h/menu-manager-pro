@@ -1,38 +1,41 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { adminListCategories, adminCreateCategory, adminDeleteCategory, getFriendlyDeleteError } from "../api";
 
 const items = ref([]);
 const name = ref("");
 const error = ref("");
 const success = ref("");
+const creating = ref(false);
+
+const activeCount = computed(() => items.value.filter((c) => c.active).length);
 
 async function load() {
   error.value = "";
   items.value = await adminListCategories();
 }
+
+function openCreate() {
+  creating.value = true;
+  name.value = "";
+}
+
+function closeCreate() {
+  creating.value = false;
+}
+
 async function create() {
-  await adminCreateCategory({ name: name.value, sortOrder: Number(sortOrder.value) });
   error.value = "";
-  name.value = ""; sortOrder.value = 1;
   success.value = "";
-  await load();
 
   try {
-    const parsedId = Number(categoryId.value);
-
-    if (!Number.isInteger(parsedId) || parsedId <= 0) {
-      throw new Error("Informe um ID válido (número inteiro maior que zero).");
+    const trimmedName = name.value?.trim();
+    if (!trimmedName) {
+      throw new Error("Informe o nome da categoria.");
     }
-
-
-    if (!name.value?.trim()) throw new Error("Informe o nome da categoria.");
-    // Mantemos sortOrder explícito para evitar qualquer referência indefinida no runtime
-    // e deixar o backend calcular automaticamente a ordem quando vier nulo.
-    const sortOrder = null;
-    await adminCreateCategory({ id: parsedId, name: name.value.trim(), sortOrder });
-    categoryId.value = "";
+    await adminCreateCategory({ name: trimmedName });
     name.value = "";
+    closeCreate();
     success.value = "Categoria criada ✅";
     await load();
   } catch (e) {
@@ -62,43 +65,127 @@ onMounted(load);
 
 <template>
   <div>
-    <h2>Categorias</h2>
-    <div class="card mt-16" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <input v-model="categoryId" type="number" min="1" step="1" placeholder="ID" />
-      <small style="width:80%;color: #6b7280;margin-left:10px;font-style: italic;">
-        Atenção! Informe um ID que ainda não esteja cadastrado. Se o ID já existir, a categoria não poderá ser criada.
-      </small>
-      <div v-if="success" class="alert success mt-16">{{ success }}</div>
-      <div class="card mt-16" style="display:flex;gap:8px;align-items:center;"></div>
-      <input v-model="name" placeholder="Nome" />
-      <button class="btn primary" @click="create">Criar</button>
+    <div class="page-head">
+      <div>
+        <h2>Categorias</h2>
+        <div class="subtle">Organize os produtos por categoria de forma rápida.</div>
+      </div>
 
     </div>
+    <div class="head-actions categories-stats">
+      <button class="btn primary" @click="openCreate">+ Criar categoria</button>
 
-    <div class="card" style="margin-top:12px;">
-      <table style="width:100%">
+    </div>
+    <div v-if="error" class="alert danger mt-16">{{ error }}</div>
+    <div v-if="success" class="alert success mt-16">{{ success }}</div>
 
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in items" :key="c.id">
-            <td>{{ c.id }}</td>
-            <td>{{ c.name }}</td>
-            <td>{{ c.active ? "Ativa" : "Inativa" }}</td>
-            <td>
-              <button class="btn" @click="removeCategory(c)">Excluir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="category-grid mt-16">
+      <article v-for="c in items" :key="c.id" class="category-item-card">
+        <div class="category-item-top">
+          <strong>{{ c.name }}</strong>
+          <span class="category-status" :class="c.active ? 'active' : 'inactive'">
+            {{ c.active ? "Ativa" : "Inativa" }}
+          </span>
+        </div>
+        <div class="subtle">ID {{ c.id }}</div>
+        <div class="category-item-actions">
+          <button class="btn danger" @click="removeCategory(c)">Remover</button>
+        </div>
+      </article>
+    </div>
 
+    <div v-if="creating" class="modal-backdrop" @click.self="closeCreate">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Criar categoria</div>
+            <div class="subtle">Digite o nome da nova categoria.</div>
+          </div>
+          <button class="btn ghost" @click="closeCreate">✕</button>
+        </div>
 
+        <form class="modal-body" @submit.prevent="create">
+          <input v-model="name" placeholder="Nome da categoria" autofocus />
+        </form>
+
+        <div class="modal-foot">
+          <button class="btn" @click="closeCreate">Cancelar</button>
+          <button class="btn primary" @click="create">Criar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.categories-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, .8);
+  font-weight: 800;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.category-item-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  padding: 14px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 10px;
+}
+
+.category-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.category-status.active {
+  background: rgba(24, 169, 87, .12);
+  color: #116235;
+}
+
+.category-status.inactive {
+  background: rgba(130, 130, 130, .14);
+  color: #4b5563;
+}
+
+.category-item-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width:900px) {
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:640px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

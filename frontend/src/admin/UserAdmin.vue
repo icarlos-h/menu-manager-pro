@@ -16,32 +16,77 @@ const unitId = ref("");
 const error = ref("");
 const success = ref("");
 
+const creating = ref(false);
+const showPasswordModal = ref(false);
+const tempPassword = ref("");
+const tempEmail = ref("");
+const copied = ref(false);
+
 async function load() {
   error.value = "";
   units.value = await adminUsersListUnits();
   users.value = await adminUsersList();
 }
-async function createUser() {
-error.value = "";
-  email.value = ""; unitId.value = "";
-  success.value = "";
-  // backend cria senha temporária e retorna? se retornar, mostrar modal — aqui só limpa
+
+function openCreate() {
+  creating.value = true;
+  email.value = "";
+  unitId.value = "";
+}
+
+function closeCreate() {
+  creating.value = false;
+}
+function closePasswordModal() {
+  showPasswordModal.value = false;
+  tempPassword.value = "";
+  tempEmail.value = "";
+  copied.value = false;
+}
+
+async function copyTempPassword() {
+  if (!tempPassword.value) return;
 
   try {
-    if (!unitId.value) throw new Error("Selecione uma unidade.");
-    if (!email.value?.trim()) throw new Error("Informe o e-mail.");
+    await navigator.clipboard.writeText(tempPassword.value);
+    copied.value = true;
+  } catch {
+    copied.value = false;
+    error.value = "Não foi possível copiar automaticamente. Copie a senha manualmente.";
+  }
+}
+
+async function createUser() {
+  error.value = "";
+  success.value = "";
+
+  try {
+    const selectedUnitId = Number(unitId.value);
+    const trimmedEmail = email.value?.trim();
+
+    if (!Number.isInteger(selectedUnitId) || selectedUnitId <= 0) {
+      throw new Error("Selecione uma unidade.");
+    }
+    if (!trimmedEmail) throw new Error("Informe o e-mail.");
 
     const created = await adminCreateUnitUser({
-      unitId: Number(unitId.value),
-      email: email.value.trim(),
+      unitId: selectedUnitId,
+      email: trimmedEmail,
     });
 
     email.value = "";
     unitId.value = "";
+    closeCreate();
 
-    success.value = created?.temporaryPassword
-      ? `Usuário criado ✅ Senha temporária: ${created.temporaryPassword}`
-      : "Usuário criado ✅";
+    if (created?.temporaryPassword) {
+      tempPassword.value = created.temporaryPassword;
+      tempEmail.value = created.email || trimmedEmail;
+      copied.value = false;
+      showPasswordModal.value = true;
+      success.value = "Usuário criado ✅";
+    } else {
+      success.value = "Usuário criado ✅";
+    }
 
     await load();
   } catch (e) {
@@ -69,24 +114,26 @@ onMounted(load);
 
 <template>
   <div>
-    <h2>Usuários (franqueado)</h2>
+    <div class="page-head">
+      <h2>Usuários (franqueado)</h2>
+      <div class="head-actions">
+        <button class="btn primary" @click="openCreate">+ Criar usuário</button>
+      </div>
+    </div>
+
     <div v-if="error" class="alert danger mt-16">{{ error }}</div>
     <div v-if="success" class="alert success mt-16">{{ success }}</div>
 
-    <div class="card mt-16" style="display:flex;gap:8px;align-items:center;">
-      <select v-model="unitId">
-        <option value="">Escolha unidade</option>
-        <option v-for="u in units" :value="u.id" :key="u.id">{{ u.name }}</option>
-      </select>
-      <input v-model="email" placeholder="email@franqueado" />
-      <button class="btn primary" @click="createUser">Criar usuário de unidade</button>
-    </div>
-
-    <div class="card" style="margin-top:12px;">
+    <div class="card mt-16" style="margin-top:12px;">
       <table style="width:100%">
         <thead>
           <tr>
-            <th>ID</th><th>E-mail</th><th>Papel</th><th>Unidade</th><th>Status</th><th>Ações</th>
+            <th>ID</th>
+            <th>E-mail</th>
+            <th>Papel</th>
+            <th>Unidade</th>
+            <th>Status</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -102,6 +149,66 @@ onMounted(load);
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div v-if="creating" class="modal-backdrop" @click.self="closeCreate">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Criar usuário de unidade</div>
+            <div class="subtle">Selecione a unidade e informe o e-mail.</div>
+          </div>
+          <button class="btn ghost" @click="closeCreate">✕</button>
+        </div>
+
+        <form class="modal-body" @submit.prevent="createUser">
+          <select v-model="unitId">
+            <option value="">Escolha unidade</option>
+            <option v-for="u in units" :value="u.id" :key="u.id">{{ u.name }}</option>
+          </select>
+          <input v-model="email" placeholder="email@franqueado" />
+        </form>
+
+        <div class="modal-foot">
+          <button class="btn" @click="closeCreate">Cancelar</button>
+          <button class="btn primary" @click="createUser">Criar usuário</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showPasswordModal" class="modal-backdrop" @click.self="closePasswordModal">
+      <div class="modal">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Usuário criado com sucesso ✅</div>
+            <div class="subtle">Guarde esta senha temporária antes de fechar.</div>
+          </div>
+          <button class="btn ghost" @click="closePasswordModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert danger" style="margin-bottom: 10px;">
+            ⚠️ Essa senha aparece apenas agora. Anote ou copie imediatamente.
+          </div>
+
+          <div class="subtle" style="margin-bottom: 6px;">E-mail</div>
+          <div class="card" style="margin-bottom: 10px; font-weight: 600;">{{ tempEmail }}</div>
+
+          <div class="subtle" style="margin-bottom: 6px;">Senha temporária</div>
+          <div class="card"
+            style="font-size: 1.25rem; letter-spacing: 0.08em; font-weight: 800; background: #fff8e1; border: 1px solid #f59e0b; color: #7c2d12;">
+            {{ tempPassword }}
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          <div v-if="copied" class="alert success" style="flex:1; margin-right: 8px;">
+            Senha copiada para a área de transferência ✅
+          </div>
+          <button class="btn" @click="copyTempPassword">Copiar senha</button>
+          <button class="btn primary" @click="closePasswordModal">Fechar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>

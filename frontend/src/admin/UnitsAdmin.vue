@@ -5,7 +5,9 @@ import { adminListUnits, adminCreateUnit, adminDeleteUnit, getFriendlyDeleteErro
 
 const units = ref([]);
 const error = ref("");
+const pageError = ref("");
 const success = ref("");
+const modalError = ref("");
 
 const creating = ref(false);
 const editingId = ref(null);
@@ -21,15 +23,16 @@ const form = ref({
 });
 
 async function load() {
-  error.value = "";
+  pageError.value = "";
   try {
     units.value = await adminListUnits();
   } catch (e) {
-    error.value = e?.message || String(e);
+    pageError.value = e?.message || String(e);
   }
 }
 
 function openCreate() {
+  modalError.value = "";
   creating.value = true;
   editingId.value = null;
   Object.assign(form.value, {
@@ -44,6 +47,7 @@ function openCreate() {
 }
 
 function closeModal() {
+  modalError.value = "";
   creating.value = false;
   editingId.value = null;
 }
@@ -53,6 +57,7 @@ function menuUrl(id) {
 }
 
 async function submit() {
+  modalError.value = "";
   error.value = "";
   success.value = "";
 
@@ -75,13 +80,13 @@ async function submit() {
     closeModal();
     await load();
   } catch (e) {
-    error.value = e?.message || String(e);
+    modalError.value = e?.message || String(e);
   }
 }
 async function removeUnit(unit) {
   if (!confirm(`Remover a unidade "${unit.name}" (ID ${unit.id})?`)) return;
 
-  error.value = "";
+  pageError.value = "";
   success.value = "";
 
   try {
@@ -90,7 +95,7 @@ async function removeUnit(unit) {
     await load();
   } catch (e) {
     const raw = e?.message || String(e);
-    error.value = getFriendlyDeleteError("unidade", raw);
+    pageError.value = getFriendlyDeleteError("unidade", raw);
 
   }
 }
@@ -110,7 +115,7 @@ onMounted(load);
       </div>
     </div>
 
-    <div v-if="error" class="alert danger mt-16">{{ error }}</div>
+    <div v-if="error" class="alert danger mt-16">{{ pageError }}</div>
     <div v-if="success" class="alert success mt-16">{{ success }}</div>
 
     <div class="grid-cards mt-16">
@@ -136,7 +141,7 @@ onMounted(load);
           <button class="btn" disabled title="Editar a gente implementa no backend já já">
             Editar
           </button>
-                    <button class="btn" @click="removeUnit(u)">Excluir</button>
+          <button class="btn" @click="removeUnit(u)">Excluir</button>
         </div>
       </div>
     </div>
@@ -165,6 +170,9 @@ onMounted(load);
         </div>
 
         <div class="modal-foot">
+          <div v-if="modalError" class="alert danger" style="flex:1; margin-right: 8px;">
+            {{ modalError }}
+          </div>
           <button class="btn" @click="closeModal">Cancelar</button>
           <button class="btn primary" @click="submit">Salvar</button>
         </div>
