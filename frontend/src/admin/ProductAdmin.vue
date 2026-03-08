@@ -11,6 +11,9 @@ import {
   getFriendlyDeleteError
 } from "../api";
 import defaultProductImage from "../assets/default.png"; // imagem padrão para produtos sem foto
+defineProps({
+  hideCreateButton: { type: Boolean, default: false },
+});
 
 const categories = ref([]);
 const products = ref([]);
@@ -68,6 +71,10 @@ async function load() {
 function openCreate() {
   creating.value = true;
 }
+
+defineExpose({
+  openCreateModal: openCreate,
+});
 
 function closeCreate() {
   creating.value = false;

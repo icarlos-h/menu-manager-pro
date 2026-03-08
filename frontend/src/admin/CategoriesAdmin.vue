@@ -2,6 +2,10 @@
 import { computed, ref, onMounted } from "vue";
 import { adminListCategories, adminCreateCategory, adminDeleteCategory, getFriendlyDeleteError } from "../api";
 
+defineProps({
+  hideCreateButton: { type: Boolean, default: false },
+});
+
 const items = ref([]);
 const name = ref("");
 const error = ref("");
@@ -19,6 +23,10 @@ function openCreate() {
   creating.value = true;
   name.value = "";
 }
+
+defineExpose({
+  openCreateModal: openCreate,
+});
 
 function closeCreate() {
   creating.value = false;

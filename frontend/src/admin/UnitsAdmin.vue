@@ -3,6 +3,11 @@
 import { ref, onMounted } from "vue";
 import { adminListUnits, adminCreateUnit, adminDeleteUnit, getFriendlyDeleteError } from "../api";
 
+defineProps({
+  hideCreateButton: { type: Boolean, default: false },
+});
+
+
 const units = ref([]);
 const error = ref("");
 const pageError = ref("");
@@ -45,6 +50,10 @@ function openCreate() {
     food99Url: "",
   });
 }
+
+defineExpose({
+  openCreateModal: openCreate,
+});
 
 function closeModal() {
   modalError.value = "";

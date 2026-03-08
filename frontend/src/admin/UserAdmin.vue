@@ -9,6 +9,11 @@ import {
   getFriendlyDeleteError
 } from "../api";
 
+defineProps({
+  hideCreateButton: { type: Boolean, default: false },
+});
+
+
 const units = ref([]);
 const users = ref([]);
 const email = ref("");
@@ -33,6 +38,10 @@ function openCreate() {
   email.value = "";
   unitId.value = "";
 }
+
+defineExpose({
+  openCreateModal: openCreate,
+});
 
 function closeCreate() {
   creating.value = false;
