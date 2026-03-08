@@ -8,7 +8,7 @@ const error = ref("");
 const success = ref("");
 
 async function load() {
-    error.value = "";
+  error.value = "";
   items.value = await adminListCategories();
 }
 async function create() {
@@ -19,9 +19,19 @@ async function create() {
   await load();
 
   try {
-    if (!name.value?.trim()) throw new Error("Informe o nome da categoria.");
+    const parsedId = Number(categoryId.value);
 
-    await adminCreateCategory({ name: name.value.trim() });
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+      throw new Error("Informe um ID válido (número inteiro maior que zero).");
+    }
+
+
+    if (!name.value?.trim()) throw new Error("Informe o nome da categoria.");
+    // Mantemos sortOrder explícito para evitar qualquer referência indefinida no runtime
+    // e deixar o backend calcular automaticamente a ordem quando vier nulo.
+    const sortOrder = null;
+    await adminCreateCategory({ id: parsedId, name: name.value.trim(), sortOrder });
+    categoryId.value = "";
     name.value = "";
     success.value = "Categoria criada ✅";
     await load();
@@ -53,18 +63,27 @@ onMounted(load);
 <template>
   <div>
     <h2>Categorias</h2>
-<div v-if="error" class="alert danger mt-16">{{ error }}</div>
-    <div v-if="success" class="alert success mt-16">{{ success }}</div>
+    <div class="card mt-16" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input v-model="categoryId" type="number" min="1" step="1" placeholder="ID" />
+      <small style="width:80%;color: #6b7280;margin-left:10px;font-style: italic;">
+        Atenção! Informe um ID que ainda não esteja cadastrado. Se o ID já existir, a categoria não poderá ser criada.
+      </small>
+      <div v-if="success" class="alert success mt-16">{{ success }}</div>
+      <div class="card mt-16" style="display:flex;gap:8px;align-items:center;"></div>
+      <input v-model="name" placeholder="Nome" />
+      <button class="btn primary" @click="create">Criar</button>
 
-    <div class="card mt-16" style="display:flex;gap:8px;align-items:center;">
-<input v-model="name" placeholder="Nome" />
-<button class="btn primary" @click="create">Criar</button>
- </div><div class="card" style="margin-top:12px;">
-<table style="width:100%">
+    </div>
 
-<thead>
+    <div class="card" style="margin-top:12px;">
+      <table style="width:100%">
+
+        <thead>
           <tr>
-            <th>ID</th><th>Nome</th><th>Status</th><th>Ações</th>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Status</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -80,5 +99,6 @@ onMounted(load);
       </table>
 
 
-</div></div>
+    </div>
+  </div>
 </template>

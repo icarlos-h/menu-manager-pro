@@ -1,5 +1,5 @@
 // frontend/src/api.js
-const API_BASE = "http://localhost:8080"; // se backend estiver em /, deixe vazio; ou "http://localhost:8080"
+const API_BASE = "http://localhost:8080";
 export function resolveBackendUrl(url) {
   if (!url) return url;
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
@@ -15,7 +15,7 @@ function getAuthHeaders() {
 async function checkResponse(r) {
   if (!r.ok) {
     const text = await r.text();
-    
+
     let message = `${r.status} ${r.statusText}`;
     if (text) {
       try {
@@ -34,13 +34,13 @@ async function checkResponse(r) {
 export function getFriendlyDeleteError(entityName, rawError) {
   const msg = String(rawError || "").toLowerCase();
 
-  const isConstraintError =    msg.includes("409 conflict") ||
-      msg.includes("403") ||
+  const isConstraintError = msg.includes("409 conflict") ||
+    msg.includes("403") ||
     msg.includes("constraint") ||
     msg.includes("referential integrity") ||
     msg.includes("foreign key") ||
     msg.includes("data integrity") ||
-     msg.includes("violat") ||
+    msg.includes("violat") ||
     msg.includes("integrity constraint") ||
     msg.includes("could not execute statement") ||
     msg.includes("sqlstate[23503]") ||
@@ -58,19 +58,19 @@ export function getFriendlyDeleteError(entityName, rawError) {
   }
 
   if (entityName === "categoria") {
-    return "Não é possível excluir uma categoria que está em uso. Remova os produtos vinculados a essa categoria antes de excluir.";
+    return "Não foi possível excluir a categoria porque ainda há vínculos ativos.";
   }
 
   if (entityName === "produto") {
-    return "Não é possível excluir um produto que está em uso. Desvincule/ajuste as referências desse produto antes de excluir.";
+    return "Não foi possível excluir o produto porque ainda há vínculos ativos.";
   }
 
   if (entityName === "unidade") {
-    return "Não foi possível excluir a unidade porque ainda há vínculos ativos. Remova os vínculos pendentes e tente novamente.";
+    return "Não foi possível excluir a unidade porque ainda há vínculos ativos.";
   }
 
   if (entityName === "usuário") {
-    return "Não foi possível excluir o usuário porque ele está em uso por outros registros.";
+    return "Não foi possível excluir o usuário porque ainda há vínculos ativos.";
   }
 
   return rawError;
@@ -228,7 +228,6 @@ export async function adminUsersList() {
   return checkResponse(r);
 }
 
-// ideal: usa o endpoint /api/admin/users/units (melhor que pegar /api/admin/units)
 export async function adminUsersListUnits() {
   const r = await fetch(`${API_BASE}/api/admin/users/units`, { headers: getAuthHeaders() });
   return checkResponse(r);
@@ -239,7 +238,7 @@ export async function adminUploadProductImage(productId, file) {
 
   const r = await fetch(`${API_BASE}/api/admin/products/${productId}/image`, {
     method: "POST",
-    headers: { ...getAuthHeaders() }, // NÃO colocar Content-Type aqui
+    headers: { ...getAuthHeaders() },
     body: fd,
   });
 
