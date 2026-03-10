@@ -9,6 +9,7 @@ const router = useRouter();
 
 const logged = computed(() => isLoggedIn());
 const path = computed(() => route.path);
+const hideTopbar = computed(() => path.value.startsWith("/admin") || path.value === "/login");
 
 const isPublic = computed(() => path.value === "/" || path.value.startsWith("/u/"));
 
@@ -40,7 +41,7 @@ function doLogout() {
 <template>
   <div class="app-bg app-shell">
     <!-- TOPBAR GLOBAL -->
-    <header class="topbar">
+    <header v-if="!hideTopbar" class="topbar">
       <div class="topbar-left" @click="goHome">
         <div class="brand-mark">M</div>
         <div>
