@@ -57,6 +57,12 @@ a{ color: inherit; }
   padding: 18px 16px 44px;
 }
 
+.container.container-admin{
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 /* ===== Tipografia ===== */
 h1,h2,h3{
   letter-spacing: -0.02em;
