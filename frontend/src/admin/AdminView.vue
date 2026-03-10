@@ -106,7 +106,7 @@ onMounted(loadWhoami);
             v-for="section in sections"
             :key="section.key"
             class="sidebar-link"
-            :class="{ active: tab === section.key }"
+            :class="{ active: tab === section.key, 'active-top': tab === section.key && section.key === 'dashboard' }"
             @click="changeSection(section.key)"
           >
             {{ section.label }}
@@ -206,16 +206,17 @@ onMounted(loadWhoami);
   display: grid;
   grid-template-columns: 285px minmax(0, 1fr);
   gap: 14px;
-  min-height: calc(100vh - 110px);
+  min-height: 100vh;
 }
 
 .admin-sidebar {
   background: #1e232d;
-  border-radius: 0 0 28px 0;
-  padding: 20px 16px;
+  border-radius: 0 0 24px 0;
+  padding: 20px 16px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 100vh;
 }
 
 .sidebar-top {
@@ -225,6 +226,8 @@ onMounted(loadWhoami);
 
 .brand-wrap {
   padding: 24px 10px 16px;
+  display: flex;
+  justify-content: center;
 }
 
 .brand-icon {
@@ -239,6 +242,7 @@ onMounted(loadWhoami);
 }
 
 .sidebar-link {
+  position: relative;
   border: 0;
   background: transparent;
   color: #fff;
@@ -254,6 +258,17 @@ onMounted(loadWhoami);
   color: #1e232d;
   font-weight: 700;
   box-shadow: inset 0 0 0 1px #e1e2ea;
+}
+
+.sidebar-link.active-top::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -16px;
+  width: 32px;
+  height: 50px;
+  background: #ececf4;
+  border-bottom-left-radius: 22px;
 }
 
 .logout-btn {
@@ -277,16 +292,17 @@ onMounted(loadWhoami);
   background: #1e232d;
   color: #fff;
   border-radius: 0 0 56px 56px;
-  min-height: 168px;
-  padding: 24px 62px;
+  height: 132px;
+  padding: 22px 62px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  overflow: hidden;
 }
 
 .hero-panel h1 {
   margin: 0;
-  font-size: 64px;
+  font-size: 54px;
 }
 
 .hero-panel p {
@@ -402,8 +418,8 @@ onMounted(loadWhoami);
 
 .floating-wrap {
   position: absolute;
-  right: -10px;
-  bottom: 16px;
+  right: 24px;
+  bottom: 24px;
 }
 
 .floating-plus {
@@ -448,12 +464,18 @@ onMounted(loadWhoami);
     grid-template-columns: 1fr;
   }
 
+  .admin-sidebar {
+    min-height: auto;
+    border-radius: 0 0 18px 18px;
+  }
+
   .quick-cards {
     grid-template-columns: 1fr;
   }
 
   .floating-wrap {
-    right: 10px;
+    right: 12px;
+    bottom: 12px;
   }
 }
 </style>
