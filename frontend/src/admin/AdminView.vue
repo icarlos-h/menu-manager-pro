@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import UnitsAdmin from "./UnitsAdmin.vue";
 import CategoriesAdmin from "./CategoriesAdmin.vue";
 import ProductAdmin from "./ProductAdmin.vue";
@@ -36,6 +36,33 @@ const createActions = [
   { key: "user", label: "Novo usuário", tab: "users" },
 ];
 
+const menuNavRef = ref(null);
+const menuIndicatorStyle = ref({
+  transform: "translateY(0px)",
+  height: "0px",
+  width: "0px",
+  opacity: "0",
+});
+const menuItemRefs = new Map();
+
+function setMenuItemRef(key, el) {
+  if (el) menuItemRefs.set(key, el);
+  else menuItemRefs.delete(key);
+}
+
+function updateMenuIndicator() {
+  const navEl = menuNavRef.value;
+  const activeEl = menuItemRefs.get(tab.value);
+
+  if (!navEl || !activeEl) return;
+
+  menuIndicatorStyle.value = {
+    transform: `translateY(${activeEl.offsetTop}px)`,
+    height: `${activeEl.offsetHeight}px`,
+    width: `${activeEl.offsetWidth}px`,
+    opacity: "1",
+  };
+}
 const tabTitle = computed(() => {
   if (tab.value === "dashboard") return "Visão Geral";
   if (tab.value === "units") return "Unidades";
@@ -90,7 +117,19 @@ async function handleQuickCreate(action) {
   if (action.tab === "users") usersAdminRef.value?.openCreateModal?.();
 }
 
-onMounted(loadWhoami);
+onMounted(() => {
+  loadWhoami();
+  nextTick(updateMenuIndicator);
+  window.addEventListener("resize", updateMenuIndicator);
+});
+
+watch(tab, () => {
+  nextTick(updateMenuIndicator);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateMenuIndicator);
+});
 </script>
 
 <template>
@@ -101,15 +140,17 @@ onMounted(loadWhoami);
           <img :src="sidebarIcon" alt="Menu Manager Pro" class="brand-icon" />
         </div>
 
-        <nav class="sidebar-nav">
+        <nav ref="menuNavRef" class="sidebar-nav">
+          <div class="sidebar-indicator" :style="menuIndicatorStyle" aria-hidden="true"></div>
           <button
             v-for="section in sections"
             :key="section.key"
+            :ref="(el) => setMenuItemRef(section.key, el)"
             class="sidebar-link"
-            :class="{ active: tab === section.key, 'active-top': tab === section.key && section.key === 'dashboard' }"
+            :class="{ active: tab === section.key }"
             @click="changeSection(section.key)"
           >
-            {{ section.label }}
+            <span>{{ section.label }}</span>
           </button>
         </nav>
       </div>
@@ -237,38 +278,45 @@ onMounted(loadWhoami);
 
 
 .sidebar-nav {
+  position: relative;
   display: grid;
   gap: 12px;
 }
 
+.sidebar-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 999px;
+  background: #ececf4;
+  box-shadow: 0 8px 18px rgba(12, 18, 30, 0.3), inset 0 0 0 1px #dfe2ea;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), height 260ms cubic-bezier(0.22, 1, 0.36, 1), width 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .sidebar-link {
   position: relative;
+  z-index: 1;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: #f1f4ff;
   text-align: left;
   padding: 12px 28px;
   border-radius: 999px;
   font-size: 16px;
   cursor: pointer;
+  transition: color 220ms ease, font-weight 220ms ease;
+}
+
+.sidebar-link span {
+  position: relative;
+  z-index: 2;
 }
 
 .sidebar-link.active {
-  background: #ececf4;
   color: #1e232d;
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px #e1e2ea;
-}
-
-.sidebar-link.active-top::before {
-  content: "";
-  position: absolute;
-  top: -50px;
-  right: -16px;
-  width: 32px;
-  height: 50px;
-  background: #ececf4;
-  border-bottom-left-radius: 22px;
 }
 
 .logout-btn {
