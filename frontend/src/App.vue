@@ -12,6 +12,7 @@ const path = computed(() => route.path);
 const hideTopbar = computed(() => path.value.startsWith("/admin") || path.value === "/login");
 
 const isPublic = computed(() => path.value === "/" || path.value.startsWith("/u/"));
+const isAdminRoute = computed(() => path.value.startsWith("/admin"));
 
 function goHome() {
   router.push("/");
@@ -82,7 +83,7 @@ function doLogout() {
     </header>
 
     <!-- CONTEÚDO -->
-    <main class="container">
+    <main :class="['container', { 'container-admin': isAdminRoute }]">
       <router-view />
     </main>
   </div>
