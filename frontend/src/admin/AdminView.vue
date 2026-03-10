@@ -4,7 +4,7 @@ import UnitsAdmin from "./UnitsAdmin.vue";
 import CategoriesAdmin from "./CategoriesAdmin.vue";
 import ProductAdmin from "./ProductAdmin.vue";
 import UserAdmin from "./UserAdmin.vue";
-import logoImage from "../assets/logo-mmp-b.png";
+import logoImage from "../assets/Logo-MMP-B.png";
 import { whoami } from "../api";
 
 const tab = ref("dashboard");
@@ -148,7 +148,7 @@ onMounted(loadWhoami);
               </p>
             </div>
 
-            <img src="../assets/logo-mmp.png" alt="Menu Manager Pro" class="card-image">
+            <img src="../assets/LOGO-MMP.png" alt="Menu Manager Pro" class="card-image">
           </div>
         </article>
         
@@ -159,7 +159,7 @@ onMounted(loadWhoami);
               <p class="subtle">1) Crie unidade, 2) cadastre categorias, 3) adicione produtos e 4) habilite usuários.</p>
             </div>
 
-            <img src="../assets/logo-mmp.png" alt="Menu Manager Pro" class="card-image">
+            <img src="../assets/LOGO-MMP.png" alt="Menu Manager Pro" class="card-image">
           </div>
         </article>
 
