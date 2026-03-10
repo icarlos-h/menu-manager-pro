@@ -276,6 +276,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+
 .sidebar-nav {
   position: relative;
   display: grid;
@@ -509,7 +510,6 @@ onBeforeUnmount(() => {
 @media (max-width: 980px) {
   .admin-shell {
     grid-template-columns: 1fr;
-    min-height: auto;
   }
 
   .admin-sidebar {
