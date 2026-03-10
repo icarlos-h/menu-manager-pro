@@ -346,10 +346,13 @@ onMounted(loadWhoami);
   background: #ececed;
   overflow: hidden;
   cursor: pointer;
+  box-shadow: 3px 5px 10px #c2c3ca;
 }
 
 .card-strip {
-  height: 62px;
+  margin-top: -35px ;
+  border-radius: 20px 20px 0 0;
+  height: 33px;
   background: #e1bd13;
 }
 
