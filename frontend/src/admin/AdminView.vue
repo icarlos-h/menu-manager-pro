@@ -204,15 +204,15 @@ onMounted(loadWhoami);
 <style scoped>
 .admin-shell {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: 285px minmax(0, 1fr);
+  gap: 14px;
   min-height: calc(100vh - 110px);
 }
 
 .admin-sidebar {
   background: #1e232d;
   border-radius: 0 0 28px 0;
-  padding: 22px 18px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -224,11 +224,11 @@ onMounted(loadWhoami);
 }
 
 .brand-wrap {
-  padding: 28px 12px 24px;
+  padding: 24px 10px 16px;
 }
 
 .brand-icon {
-  width: 118px;
+  width: 100px;
   display: block;
 }
 
@@ -243,16 +243,17 @@ onMounted(loadWhoami);
   background: transparent;
   color: #fff;
   text-align: left;
-  padding: 14px 18px;
+  padding: 12px 28px;
   border-radius: 999px;
-  font-size: 34px;
+  font-size: 16px;
   cursor: pointer;
 }
 
 .sidebar-link.active {
   background: #ececf4;
   color: #1e232d;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px #e1e2ea;
 }
 
 .logout-btn {
@@ -260,9 +261,9 @@ onMounted(loadWhoami);
   border-radius: 999px;
   background: #fff;
   color: #1a2060;
-  font-size: 37px;
+  font-size: 18px;
   font-weight: 700;
-  height: 74px;
+  height: 50px;
   cursor: pointer;
 }
 
@@ -276,8 +277,8 @@ onMounted(loadWhoami);
   background: #1e232d;
   color: #fff;
   border-radius: 0 0 56px 56px;
-  min-height: 190px;
-  padding: 30px 38px;
+  min-height: 168px;
+  padding: 24px 62px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -285,12 +286,12 @@ onMounted(loadWhoami);
 
 .hero-panel h1 {
   margin: 0;
-  font-size: 70px;
+  font-size: 64px;
 }
 
 .hero-panel p {
   margin: 6px 0 0;
-  font-size: 38px;
+  font-size: 14px;
   color: #e8e8ef;
 }
 
@@ -298,8 +299,8 @@ onMounted(loadWhoami);
   background: #dceee2;
   color: #418565;
   border-radius: 999px;
-  padding: 8px 18px;
-  font-size: 30px;
+  padding: 8px 20px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -315,42 +316,42 @@ onMounted(loadWhoami);
 
 .quick-cards {
   border: 1px solid #c4c6cd;
-  border-radius: 36px;
+  border-radius: 44px;
   background: #ececed;
-  padding: 22px;
+  padding: 14px 16px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .quick-card {
   border: 1px solid #bdbec4;
-  border-radius: 28px;
+  border-radius: 26px;
   background: #ececed;
   overflow: hidden;
   cursor: pointer;
 }
 
 .card-strip {
-  height: 90px;
+  height: 62px;
   background: #e1bd13;
 }
 
 .card-row {
-  padding: 18px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .card-row strong {
-  font-size: 34px;
+  font-size: 22px;
   color: #1e232d;
 }
 
 .card-row span {
   white-space: nowrap;
-  font-size: 22px;
+  font-size: 12px;
   color: #8f91ab;
   font-weight: 700;
 }
@@ -360,27 +361,27 @@ onMounted(loadWhoami);
   border: 1px solid #c4c6cd;
   border-radius: 36px;
   background: #ececed;
-  padding: 42px 58px;
+  padding: 42px 62px;
 }
 
 .warnings-panel h2 {
   margin: 0;
-  font-size: 34px;
+  font-size: 40px;
   color: #1e232d;
 }
 
 .warnings-panel p {
   margin: 36px 0 0;
-  font-size: 48px;
-  line-height: 1.35;
+  font-size: 16px;
+  line-height: 1.28;
 }
 
 .plus-inline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: #5d9e7a;
   color: #fff;
@@ -390,9 +391,9 @@ onMounted(loadWhoami);
 
 .admin-content-panel {
   border: 1px solid #c4c6cd;
-  border-radius: 28px;
+  border-radius: 26px;
   background: #ececed;
-  padding: 18px;
+  padding: 14px 16px;
 }
 
 .settings-placeholder {
@@ -401,13 +402,13 @@ onMounted(loadWhoami);
 
 .floating-wrap {
   position: absolute;
-  right: -18px;
+  right: -10px;
   bottom: 16px;
 }
 
 .floating-plus {
-  width: 76px;
-  height: 76px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   border: 0;
   background: #5d9e7a;
