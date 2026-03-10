@@ -32,13 +32,24 @@ this.unitCategoryRepository = unitCategoryRepository;
 
     @Transactional
     public CategoryResponse create(CategoryCreateRequest request) {
+        
         String name = request.name().trim();
-
+        
+      
         if (repository.findByNameIgnoreCase(name).isPresent()) {
-            throw new IllegalArgumentException("Category already exists: " + name);
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Nome de categoria já cadastrado: " + name
+            );
         }
 
-        Category saved = repository.save(new Category(name, null));
+        int nextSortOrder = repository.findTopByOrderBySortOrderDesc()
+                .map(Category::getSortOrder)
+                .map(current -> current + 1)
+                .orElse(1);
+        int sortOrder = request.sortOrder() != null ? request.sortOrder() : nextSortOrder;
+
+        Category saved = repository.save(new Category( name, sortOrder));
         unitRepository.findAll().forEach(unit -> {
             unitCategoryRepository.save(new UnitCategory(unit, saved, false));
         });

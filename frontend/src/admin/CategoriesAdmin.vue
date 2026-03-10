@@ -75,8 +75,7 @@ onMounted(load);
   <div>
     <div class="page-head">
       <div>
-        <h2>Categorias</h2>
-        <div class="subtle">Organize os produtos por categoria de forma rápida.</div>
+        <div class="subtle"> </div>
       </div>
 
     </div>
@@ -89,6 +88,9 @@ onMounted(load);
 
     <div class="category-grid mt-16">
       <article v-for="c in items" :key="c.id" class="category-item-card">
+        <div class="category-cover">
+          <img src="../assets/capa-unidade.png" alt="capa da unidade">
+        </div>
         <div class="category-item-top">
           <strong>{{ c.name }}</strong>
           <span class="category-status" :class="c.active ? 'active' : 'inactive'">
@@ -195,5 +197,19 @@ onMounted(load);
   .category-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.category-cover {
+  width: 100%;
+  height: 90px;           /* capa fina */
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.category-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* corta mantendo proporção */
+  display: block;
 }
 </style>

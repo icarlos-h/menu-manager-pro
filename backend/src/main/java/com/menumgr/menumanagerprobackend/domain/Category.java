@@ -20,7 +20,7 @@ public class Category {
 
     protected Category() {}
 
-    public Category(String name, Integer sortOrder) {
+    public Category( String name, Integer sortOrder) {
         this.name = name;
         this.sortOrder = sortOrder == null ? 0 : sortOrder;
     }

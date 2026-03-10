@@ -23,11 +23,11 @@ VALUES
 -- ============================
 -- CATEGORIES (globais)
 -- ============================
-INSERT INTO categories (name, sort_order, active)
+INSERT INTO categories (id, name, sort_order, active)
 VALUES
-('Burgers', 1, TRUE),
-('Bebidas', 2, TRUE),
-('Sobremesas', 3, TRUE);
+(1, 'Burgers', 1, TRUE),
+(2, 'Bebidas', 2, TRUE),
+(3, 'Sobremesas', 3, TRUE);
 
 -- ============================
 -- PRODUCTS (globais)

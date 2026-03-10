@@ -124,7 +124,7 @@ onMounted(load);
 <template>
   <div>
     <div class="page-head">
-      <h2>Usuários (franqueado)</h2>
+      <h2> </h2>
       <div class="head-actions">
         <button class="btn primary" @click="openCreate">+ Criar usuário</button>
       </div>

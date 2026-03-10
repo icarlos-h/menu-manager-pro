@@ -170,7 +170,7 @@ function openPhotoUrl(photoUrl) {
 <template>
   <div>
     <div class="page-head">
-      <h2>Produtos</h2>
+      <h2> </h2>
       <div class="head-actions">
         <button class="btn primary" @click="openCreate">+ Criar produto</button>
       </div>

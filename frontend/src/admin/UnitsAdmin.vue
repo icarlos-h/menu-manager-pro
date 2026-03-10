@@ -115,8 +115,8 @@ onMounted(load);
   <div>
     <div class="page-head">
       <div>
-        <h2>Unidades</h2>
-        <div class="subtle">Gerencie as unidades da franquia.</div>
+        <h2></h2>
+        <div class="subtle"></div>
       </div>
 
       <div class="head-actions">
@@ -129,12 +129,17 @@ onMounted(load);
 
     <div class="grid-cards mt-16">
       <div v-for="u in units" :key="u.id" class="unit-card">
+
+        <div class="unit-cover">
+          <img src="../assets/capa-unidade.png" alt="capa da unidade">
+        </div>
+
         <div class="unit-card-top">
           <div>
             <div class="unit-title">{{ u.name }}</div>
             <div class="subtle">Unidade #{{ u.id }}</div>
           </div>
-          <div class="badge">ID {{ u.id }}</div>
+          <div class="badge">#{{ u.id }}</div>
         </div>
 
         <div class="unit-meta">
@@ -150,8 +155,10 @@ onMounted(load);
           <button class="btn" disabled title="Editar a gente implementa no backend já já">
             Editar
           </button>
+
           <button class="btn" @click="removeUnit(u)">Excluir</button>
         </div>
+
       </div>
     </div>
 
@@ -189,3 +196,22 @@ onMounted(load);
     </div>
   </div>
 </template>
+
+<style scoped>
+  .unit-cover {
+    width: 100%;
+    height: 90px;
+    /* capa fina */
+    padding-bottom: 15px;
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .unit-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* corta mantendo proporção */
+    display: block;
+  }
+</style>

@@ -62,7 +62,7 @@ public class AdminSeed {
 
     private Category upsertCategory(CategoryRepository repo, String name, int sortOrder) {
         return repo.findByNameIgnoreCase(name)
-                .orElseGet(() -> repo.save(new Category(name, sortOrder)));
+                .orElseGet(() -> repo.save(new Category( name, sortOrder)));
     }
 
     // -------------------- PRODUCT --------------------
