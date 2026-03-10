@@ -235,6 +235,7 @@ onMounted(loadWhoami);
   display: block;
 }
 
+
 .sidebar-nav {
   display: grid;
   gap: 12px;
@@ -461,7 +462,6 @@ onMounted(loadWhoami);
 @media (max-width: 980px) {
   .admin-shell {
     grid-template-columns: 1fr;
-    min-height: auto;
   }
 
   .admin-sidebar {
