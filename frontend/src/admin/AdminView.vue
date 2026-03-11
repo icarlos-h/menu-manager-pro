@@ -270,7 +270,6 @@ onBeforeUnmount(() => {
   min-height: 172px;
   border-radius: 0 0 26px 0;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
@@ -278,6 +277,7 @@ onBeforeUnmount(() => {
   width: 106px;
   display: block;
 }
+
 
 .sidebar-nav {
   position: relative;
@@ -524,7 +524,6 @@ onBeforeUnmount(() => {
 @media (max-width: 980px) {
   .admin-shell {
     grid-template-columns: 1fr;
-    min-height: auto;
   }
 
   .admin-sidebar {
