@@ -346,11 +346,12 @@ onBeforeUnmount(() => {
 }
 
 .hero-panel {
-  background: #1a2233;
+  background: #282f3f;
   color: #fff;
-  border-radius: 0 0 62px 62px;
-  height: 132px;
-  padding: 18px 38px 16px 56px;
+  width: 95%;
+  border-radius: 0 0 50px 50px;
+  height: 150px;
+  padding: 30px 50px 15px 50px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -359,7 +360,7 @@ onBeforeUnmount(() => {
 
 .hero-panel h1 {
   margin: 0;
-  font-size: 58px;
+  font-size: 42px;
   line-height: 1;
 }
 
