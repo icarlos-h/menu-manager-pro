@@ -4,7 +4,7 @@
    ========================================================= */
 
 :root{
-  --bg: #ededf5;
+  --bg: #ececf4;
   --paper: rgba(255, 255, 255, 0.92);
   --paper-solid: #ffffff;
 
@@ -55,6 +55,12 @@ a{ color: inherit; }
   max-width: var(--max);
   margin: 0 auto;
   padding: 18px 16px 44px;
+}
+
+.container.container-admin{
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 /* ===== Tipografia ===== */
