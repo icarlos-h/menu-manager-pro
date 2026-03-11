@@ -245,6 +245,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+
 .admin-shell {
   display: grid;
   grid-template-columns: 286px minmax(0, 1fr);
@@ -252,6 +253,7 @@ onBeforeUnmount(() => {
 }
 
 .admin-sidebar {
+  
   background: #1a2233;
   padding: 16px 12px 14px;
   display: flex;
@@ -273,16 +275,18 @@ onBeforeUnmount(() => {
 }
 
 .brand-icon {
-  width: 106px;
   display: block;
+  width: 106px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
-
 
 .sidebar-nav {
   position: relative;
   display: grid;
   gap: 10px;
-  padding-right: 10px;
+  padding: 20px;
   overflow: visible;
 }
 
@@ -305,14 +309,21 @@ onBeforeUnmount(() => {
 .sidebar-link {
   position: relative;
   z-index: 1;
+
+  display: block;
+  width: 115%;
+
   border: 0;
   background: transparent;
   color: #f3f5fb;
+
   text-align: left;
   padding: 11px 20px;
+
   border-radius: 999px;
   font-size: 16px;
   cursor: pointer;
+
   transition: color 200ms ease, font-weight 200ms ease;
 }
 
@@ -322,9 +333,12 @@ onBeforeUnmount(() => {
 }
 
 .sidebar-link.active {
+  background: var(--bg);
+  border-radius: 50px 0 0 50px;
   color: #1f2531;
   font-weight: 700;
 }
+
 
 .logout-btn {
   border: 0;
@@ -341,16 +355,17 @@ onBeforeUnmount(() => {
   position: relative;
   display: grid;
   gap: 18px;
-  padding: 0 32px 20px 8px;
+  padding: 0 50px 0px 50px;
 }
 
 .hero-panel {
+  
   background: #282f3f;
   color: #fff;
   width: 95%;
   border-radius: 0 0 50px 50px;
   height: 150px;
-  padding: 30px 50px 15px 50px;
+  padding: 30px 50px 0 50px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -393,15 +408,16 @@ onBeforeUnmount(() => {
   border: 1px solid #c3c5cc;
   border-radius: 46px;
   background: #e8e8eb;
-  padding: 14px;
+  padding: 20px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px;
 }
 
 .quick-card {
   border: 1px solid #b9bbc3;
   border-radius: 26px;
+  padding-top: 7px;
   background: #ececef;
   overflow: hidden;
   cursor: pointer;
@@ -410,7 +426,7 @@ onBeforeUnmount(() => {
 .card-strip {
   height: 62px;
   background: #e1bd13;
-  border-radius: 14px 14px 0 0;
+  border-radius: 21px 21px 0 0;
 }
 
 .card-row {
@@ -421,13 +437,13 @@ onBeforeUnmount(() => {
 }
 
 .card-row strong {
-  font-size: 42px;
+  font-size: 30px;
   color: #1f2531;
 }
 
 .card-row span {
   white-space: nowrap;
-  font-size: 22px;
+  font-size: 15px;
   color: #8f91ab;
   font-weight: 700;
 }
