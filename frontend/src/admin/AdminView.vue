@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import UnitsAdmin from "./UnitsAdmin.vue";
 import CategoriesAdmin from "./CategoriesAdmin.vue";
 import ProductAdmin from "./ProductAdmin.vue";
@@ -36,6 +36,35 @@ const createActions = [
   { key: "user", label: "Novo usuário", tab: "users" },
 ];
 
+const menuNavRef = ref(null);
+const menuIndicatorStyle = ref({
+  transform: "translateY(0px)",
+  height: "0px",
+  width: "0px",
+  opacity: "0",
+});
+const menuItemRefs = new Map();
+
+function setMenuItemRef(key, el) {
+  if (el) menuItemRefs.set(key, el);
+  else menuItemRefs.delete(key);
+}
+
+function updateMenuIndicator() {
+  const navEl = menuNavRef.value;
+  const activeEl = menuItemRefs.get(tab.value);
+
+  if (!navEl || !activeEl) return;
+
+  const indicatorBleed = 14;
+
+  menuIndicatorStyle.value = {
+    transform: `translateY(${activeEl.offsetTop}px)`,
+    height: `${activeEl.offsetHeight}px`,
+    width: `${activeEl.offsetWidth + indicatorBleed}px`,
+    opacity: "1",
+  };
+}
 const tabTitle = computed(() => {
   if (tab.value === "dashboard") return "Visão Geral";
   if (tab.value === "units") return "Unidades";
@@ -90,7 +119,19 @@ async function handleQuickCreate(action) {
   if (action.tab === "users") usersAdminRef.value?.openCreateModal?.();
 }
 
-onMounted(loadWhoami);
+onMounted(() => {
+  loadWhoami();
+  nextTick(updateMenuIndicator);
+  window.addEventListener("resize", updateMenuIndicator);
+});
+
+watch(tab, () => {
+  nextTick(updateMenuIndicator);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateMenuIndicator);
+});
 </script>
 
 <template>
@@ -101,15 +142,17 @@ onMounted(loadWhoami);
           <img :src="sidebarIcon" alt="Menu Manager Pro" class="brand-icon" />
         </div>
 
-        <nav class="sidebar-nav">
+        <nav ref="menuNavRef" class="sidebar-nav">
+          <div class="sidebar-indicator" :style="menuIndicatorStyle" aria-hidden="true"></div>
           <button
             v-for="section in sections"
             :key="section.key"
+            :ref="(el) => setMenuItemRef(section.key, el)"
             class="sidebar-link"
-            :class="{ active: tab === section.key, 'active-top': tab === section.key && section.key === 'dashboard' }"
+            :class="{ active: tab === section.key }"
             @click="changeSection(section.key)"
           >
-            {{ section.label }}
+            <span>{{ section.label }}</span>
           </button>
         </nav>
       </div>
@@ -204,15 +247,14 @@ onMounted(loadWhoami);
 <style scoped>
 .admin-shell {
   display: grid;
-  grid-template-columns: 285px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 286px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .admin-sidebar {
-  background: #1e232d;
-  border-radius: 0 0 24px 0;
-  padding: 20px 16px 18px;
+  background: #1a2233;
+  border-radius: 0 28px 0 0;
+  padding: 16px 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -221,64 +263,78 @@ onMounted(loadWhoami);
 
 .sidebar-top {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 
 .brand-wrap {
-  padding: 24px 10px 16px;
+  min-height: 172px;
+  border-radius: 0 0 26px 0;
   display: flex;
   justify-content: center;
 }
 
 .brand-icon {
-  width: 100px;
+  width: 106px;
   display: block;
 }
 
 
 .sidebar-nav {
+  position: relative;
   display: grid;
-  gap: 12px;
+  gap: 10px;
+  padding-right: 10px;
+  overflow: visible;
+}
+
+.sidebar-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 999px;
+  background: #ececf4;
+  box-shadow: 0 6px 14px rgba(9, 12, 20, 0.26), inset 0 0 0 1px #d7dae4;
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .sidebar-link {
   position: relative;
+  z-index: 1;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: #f3f5fb;
   text-align: left;
-  padding: 12px 28px;
+  padding: 11px 20px;
   border-radius: 999px;
   font-size: 16px;
   cursor: pointer;
+  transition: color 200ms ease, font-weight 200ms ease;
+}
+
+.sidebar-link span {
+  position: relative;
+  z-index: 2;
 }
 
 .sidebar-link.active {
-  background: #ececf4;
-  color: #1e232d;
+  color: #1f2531;
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px #e1e2ea;
-}
-
-.sidebar-link.active-top::before {
-  content: "";
-  position: absolute;
-  top: -50px;
-  right: -16px;
-  width: 32px;
-  height: 50px;
-  background: #ececf4;
-  border-bottom-left-radius: 22px;
 }
 
 .logout-btn {
   border: 0;
   border-radius: 999px;
-  background: #fff;
+  background: #f2f3f7;
   color: #1a2060;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  height: 50px;
+  height: 52px;
   cursor: pointer;
 }
 
@@ -286,41 +342,44 @@ onMounted(loadWhoami);
   position: relative;
   display: grid;
   gap: 18px;
+  padding: 0 32px 20px 8px;
 }
 
 .hero-panel {
-  background: #1e232d;
+  background: #1a2233;
   color: #fff;
-  border-radius: 0 0 56px 56px;
+  border-radius: 0 0 62px 62px;
   height: 132px;
-  padding: 22px 62px;
+  padding: 18px 38px 16px 56px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   overflow: hidden;
 }
 
 .hero-panel h1 {
   margin: 0;
-  font-size: 54px;
+  font-size: 58px;
+  line-height: 1;
 }
 
 .hero-panel p {
-  margin: 6px 0 0;
-  font-size: 14px;
-  color: #e8e8ef;
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #f1f2f7;
 }
 
 .status-pill {
-  background: #dceee2;
-  color: #418565;
+  background: #d8ede1;
+  color: #4a8a66;
   border-radius: 999px;
-  padding: 8px 20px;
-  font-size: 14px;
+  padding: 8px 18px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-style: italic;
+  margin-top: 12px;
 }
 
 .dot {
@@ -331,81 +390,80 @@ onMounted(loadWhoami);
 }
 
 .quick-cards {
-  border: 1px solid #c4c6cd;
-  border-radius: 44px;
-  background: #ececed;
-  padding: 14px 16px;
+  border: 1px solid #c3c5cc;
+  border-radius: 46px;
+  background: #e8e8eb;
+  padding: 14px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
 .quick-card {
-  border: 1px solid #bdbec4;
+  border: 1px solid #b9bbc3;
   border-radius: 26px;
-  background: #ececed;
+  background: #ececef;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 3px 5px 10px #c2c3ca;
 }
 
 .card-strip {
-  margin-top: -35px ;
-  border-radius: 20px 20px 0 0;
-  height: 33px;
+  height: 62px;
   background: #e1bd13;
+  border-radius: 14px 14px 0 0;
 }
 
 .card-row {
-  padding: 14px 16px;
+  padding: 16px 16px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .card-row strong {
-  font-size: 22px;
-  color: #1e232d;
+  font-size: 42px;
+  color: #1f2531;
 }
 
 .card-row span {
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 22px;
   color: #8f91ab;
   font-weight: 700;
 }
 
 .warnings-panel {
   min-height: 520px;
-  border: 1px solid #c4c6cd;
-  border-radius: 36px;
-  background: #ececed;
-  padding: 42px 62px;
+  border: 1px solid #c3c5cc;
+  border-radius: 42px;
+  background: #ececef;
+  padding: 42px 56px;
 }
 
 .warnings-panel h2 {
   margin: 0;
-  font-size: 40px;
-  color: #1e232d;
+  font-size: 60px;
+  color: #1f2531;
 }
 
 .warnings-panel p {
-  margin: 36px 0 0;
-  font-size: 16px;
-  line-height: 1.28;
+  margin: 28px 0 0;
+  font-size: 18px;
+  line-height: 1.35;
+  max-width: 930px;
 }
 
 .plus-inline {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #5d9e7a;
   color: #fff;
   font-weight: 700;
-  margin: 0 4px;
+  margin: 0 6px;
 }
 
 .admin-content-panel {
@@ -421,25 +479,25 @@ onMounted(loadWhoami);
 
 .floating-wrap {
   position: absolute;
-  right: 24px;
-  bottom: 24px;
+  right: 14px;
+  bottom: 10px;
 }
 
 .floating-plus {
-  width: 68px;
-  height: 68px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
   border: 0;
   background: #5d9e7a;
   color: #fff;
-  font-size: 52px;
+  font-size: 56px;
   line-height: 1;
   cursor: pointer;
 }
 
 .floating-menu {
   position: absolute;
-  right: 84px;
+  right: 88px;
   bottom: 0;
   min-width: 180px;
   background: #fff;
