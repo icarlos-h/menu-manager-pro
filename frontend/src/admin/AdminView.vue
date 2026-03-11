@@ -253,7 +253,6 @@ onBeforeUnmount(() => {
 
 .admin-sidebar {
   background: #1a2233;
-  border-radius: 0 28px 0 0;
   padding: 16px 12px 14px;
   display: flex;
   flex-direction: column;
