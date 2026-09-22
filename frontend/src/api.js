@@ -8,7 +8,6 @@ export function resolveBackendUrl(url) {
 }
 function getAuthHeaders() {
   const token = localStorage.getItem("auth_token");
-  console.log("TOKEN:", token);
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
